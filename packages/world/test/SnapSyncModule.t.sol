@@ -88,7 +88,7 @@ contract SnapSyncModuleTest is Test, GasReporter {
     _installModules();
 
     // Set a value in the source table
-    world.setRecord(namespace, name, keyTuple1, abi.encodePacked(value1));
+    world.setRecord(namespace, name, keyTuple1, abi.encodePacked(value1), tableSchema);
 
     uint256 limit = ISnapSyncSystem(address(world)).snapSync_system_getNumKeysInTable(tableId);
 
@@ -102,7 +102,7 @@ contract SnapSyncModuleTest is Test, GasReporter {
     assertEq(records[0].value, abi.encodePacked(value1));
 
     // Set another key with a different value
-    world.setRecord(namespace, name, keyTuple2, abi.encodePacked(value2));
+    world.setRecord(namespace, name, keyTuple2, abi.encodePacked(value2), tableSchema);
 
     limit = ISnapSyncSystem(address(world)).snapSync_system_getNumKeysInTable(tableId);
 
@@ -137,7 +137,7 @@ contract SnapSyncModuleTest is Test, GasReporter {
     ISnapSyncSystem syncSystem = ISnapSyncSystem(address(world));
 
     // Set a value in the source table
-    world.setRecord(namespace, compositeName, keyTupleA, abi.encodePacked(value1));
+    world.setRecord(namespace, compositeName, keyTupleA, abi.encodePacked(value1), tableSchema);
 
     uint256 limit = syncSystem.snapSync_system_getNumKeysInTable(compositeTableId);
 
@@ -153,7 +153,7 @@ contract SnapSyncModuleTest is Test, GasReporter {
     assertEq(records[0].value, abi.encodePacked(value1));
 
     // Set another key with a different value
-    world.setRecord(namespace, compositeName, keyTupleB, abi.encodePacked(value2));
+    world.setRecord(namespace, compositeName, keyTupleB, abi.encodePacked(value2), tableSchema);
 
     limit = syncSystem.snapSync_system_getNumKeysInTable(compositeTableId);
 
@@ -184,7 +184,7 @@ contract SnapSyncModuleTest is Test, GasReporter {
     keyTupleB[2] = "B3";
 
     // Set a value in the source table
-    world.setRecord(namespace, compositeName, keyTupleA, abi.encodePacked(value1));
+    world.setRecord(namespace, compositeName, keyTupleA, abi.encodePacked(value1), tableSchema);
 
     ISnapSyncSystem syncSystem = ISnapSyncSystem(address(world));
 
@@ -202,7 +202,7 @@ contract SnapSyncModuleTest is Test, GasReporter {
     assertEq(records[0].value, abi.encodePacked(value1));
 
     // Set another key with a different value
-    world.setRecord(namespace, compositeName, keyTupleB, abi.encodePacked(value2));
+    world.setRecord(namespace, compositeName, keyTupleB, abi.encodePacked(value2), tableSchema);
 
     limit = syncSystem.snapSync_system_getNumKeysInTable(compositeTableId);
 

@@ -67,7 +67,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 0);
+    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 0, getSchema());
     return (SliceLib.getSubslice(_blob, 0, _blob.length).decodeArray_bytes32());
   }
 
@@ -80,7 +80,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    bytes memory _blob = _store.getField(_tableId, _keyTuple, 0);
+    bytes memory _blob = _store.getField(_tableId, _keyTuple, 0, getSchema());
     return (SliceLib.getSubslice(_blob, 0, _blob.length).decodeArray_bytes32());
   }
 
@@ -89,7 +89,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    StoreSwitch.setField(_tableId, _keyTuple, 0, EncodeArray.encode((keysWithValue)));
+    StoreSwitch.setField(_tableId, _keyTuple, 0, EncodeArray.encode((keysWithValue)), getSchema());
   }
 
   /** Set keysWithValue (using the specified store) */
@@ -97,7 +97,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    _store.setField(_tableId, _keyTuple, 0, EncodeArray.encode((keysWithValue)));
+    _store.setField(_tableId, _keyTuple, 0, EncodeArray.encode((keysWithValue)), getSchema());
   }
 
   /** Get the length of keysWithValue */
@@ -141,7 +141,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    StoreSwitch.pushToField(_tableId, _keyTuple, 0, abi.encodePacked((_element)));
+    StoreSwitch.pushToField(_tableId, _keyTuple, 0, abi.encodePacked((_element)), getSchema());
   }
 
   /** Push an element to keysWithValue (using the specified store) */
@@ -149,7 +149,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    _store.pushToField(_tableId, _keyTuple, 0, abi.encodePacked((_element)));
+    _store.pushToField(_tableId, _keyTuple, 0, abi.encodePacked((_element)), getSchema());
   }
 
   /** Pop an element from keysWithValue */
@@ -157,7 +157,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    StoreSwitch.popFromField(_tableId, _keyTuple, 0, 32);
+    StoreSwitch.popFromField(_tableId, _keyTuple, 0, 32, getSchema());
   }
 
   /** Pop an element from keysWithValue (using the specified store) */
@@ -165,7 +165,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    _store.popFromField(_tableId, _keyTuple, 0, 32);
+    _store.popFromField(_tableId, _keyTuple, 0, 32, getSchema());
   }
 
   /** Update an element of keysWithValue at `_index` */
@@ -173,7 +173,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    StoreSwitch.updateInField(_tableId, _keyTuple, 0, _index * 32, abi.encodePacked((_element)));
+    StoreSwitch.updateInField(_tableId, _keyTuple, 0, _index * 32, abi.encodePacked((_element)), getSchema());
   }
 
   /** Update an element of keysWithValue (using the specified store) at `_index` */
@@ -181,7 +181,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    _store.updateInField(_tableId, _keyTuple, 0, _index * 32, abi.encodePacked((_element)));
+    _store.updateInField(_tableId, _keyTuple, 0, _index * 32, abi.encodePacked((_element)), getSchema());
   }
 
   /** Tightly pack full data using this table's schema */
@@ -204,7 +204,7 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    StoreSwitch.deleteRecord(_tableId, _keyTuple);
+    StoreSwitch.deleteRecord(_tableId, _keyTuple, getSchema());
   }
 
   /* Delete all data for given keys (using the specified store) */
@@ -212,6 +212,6 @@ library KeysWithValue {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = valueHash;
 
-    _store.deleteRecord(_tableId, _keyTuple);
+    _store.deleteRecord(_tableId, _keyTuple, getSchema());
   }
 }

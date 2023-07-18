@@ -18,8 +18,8 @@ contract SnapSyncSystem is System {
   ) public view virtual returns (SyncRecord[] memory records) {
     records = new SyncRecord[](limit);
 
-    Schema schema = StoreSwitch.getKeySchema(tableId);
-    uint256 numFields = schema.numFields();
+    Schema keySchema = StoreSwitch.getKeySchema(tableId);
+    uint256 numFields = keySchema.numFields();
 
     for (uint256 i = offset; i < limit + offset; i++) {
       bytes32[] memory keyTuple = new bytes32[](numFields);
@@ -40,7 +40,8 @@ contract SnapSyncSystem is System {
         }
       }
 
-      bytes memory value = StoreSwitch.getRecord(tableId, keyTuple);
+      Schema valueSchema = StoreSwitch.getSchema(tableId);
+      bytes memory value = StoreSwitch.getRecord(tableId, keyTuple, valueSchema);
       records[i] = SyncRecord({ tableId: tableId, keyTuple: keyTuple, value: value });
     }
   }
