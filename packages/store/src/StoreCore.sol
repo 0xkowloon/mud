@@ -8,7 +8,7 @@ import { Memory } from "./Memory.sol";
 import { Schema, SchemaLib } from "./Schema.sol";
 import { PackedCounter } from "./PackedCounter.sol";
 import { Slice, SliceLib } from "./Slice.sol";
-import { StoreMetadata, Hooks, HooksTableId } from "./codegen/Tables.sol";
+import { StoreMetadata, Hooks, TableData, HooksTableId } from "./codegen/Tables.sol";
 import { IStoreErrors } from "./IStoreErrors.sol";
 import { IStoreHook } from "./IStore.sol";
 import { TableId } from "./TableId.sol";
@@ -35,34 +35,10 @@ library StoreCore {
     // StoreSwitch uses internal methods to write data instead of external calls.
     StoreSwitch.setStoreAddress(address(this));
 
-    // Register internal schema table
-    SchemaType[] memory _valueSchema = new SchemaType[](2);
-    _valueSchema[0] = SchemaType.BYTES32;
-    _valueSchema[1] = SchemaType.BYTES32;
-    SchemaType[] memory _keySchema = new SchemaType[](1);
-    _keySchema[0] = SchemaType.BYTES32;
-    registerSchema(
-      StoreCoreInternal.SCHEMA_TABLE,
-      SchemaLib.encode(_valueSchema), // The Schema table's valueSchema is { valueSchema: BYTES32, keySchema: BYTES32 }
-      SchemaLib.encode(_keySchema) // The Schema table's keySchema is { tableId: BYTES32 }
-    );
-
-    // Register other internal tables
-    //
-    // For hooks and metadata tables, we need to register the schemas first and
-    // then their metadata. This is because setMetadata (a store set record)
-    // triggers a hook call, which uses getField, which will fail if the schema
-    // is not registered yet.
-    Hooks.registerSchema();
-    StoreMetadata.registerSchema();
-    Hooks.setMetadata();
-    StoreMetadata.setMetadata();
-
-    // Set metadata for the schema table
-    string[] memory fieldNames = new string[](2);
-    fieldNames[0] = "valueSchema";
-    fieldNames[1] = "keySchema";
-    StoreMetadata.set(StoreCoreInternal.SCHEMA_TABLE, "schema", abi.encode(fieldNames));
+    // Register internal tables
+    TableData.register();
+    Hooks.register();
+    StoreMetadata.register();
   }
 
   /************************************************************************
@@ -74,8 +50,8 @@ library StoreCore {
   /**
    * Get the schema for the given tableId
    */
-  function getSchema(bytes32 tableId) internal view returns (Schema schema) {
-    schema = StoreCoreInternal._getSchema(tableId);
+  function getValueSchema(bytes32 tableId) internal view returns (Schema schema) {
+    schema = Schema.wrap(TableData.getValueSchema(tableId));
     if (schema.isEmpty()) {
       revert IStoreErrors.StoreCore_TableNotFound(tableId, tableId.toString());
     }
@@ -85,7 +61,7 @@ library StoreCore {
    * Get the key schema for the given tableId
    */
   function getKeySchema(bytes32 tableId) internal view returns (Schema keySchema) {
-    keySchema = StoreCoreInternal._getKeySchema(tableId);
+    keySchema = Schema.wrap(TableData.getKeySchema(tableId));
     // key schemas can be empty for singleton tables, so we can't depend on key schema for table check
     if (!hasTable(tableId)) {
       revert IStoreErrors.StoreCore_TableNotFound(tableId, tableId.toString());
@@ -96,16 +72,32 @@ library StoreCore {
    * Check if a table with the given tableId exists
    */
   function hasTable(bytes32 tableId) internal view returns (bool) {
-    return !StoreCoreInternal._getSchema(tableId).isEmpty();
+    return TableData.getValueSchema(tableId) != bytes32(0);
   }
 
   /**
-   * Register a new tableId schema
+   * Register a new table with key schema, value schema, key names and field names
    */
-  function registerSchema(bytes32 tableId, Schema valueSchema, Schema keySchema) internal {
+  function registerTable(
+    bytes32 tableId,
+    Schema keySchema,
+    Schema valueSchema,
+    string[] memory keyNames,
+    string[] memory fieldNames
+  ) internal {
     // Verify the schema is valid
-    valueSchema.validate({ allowEmpty: false });
     keySchema.validate({ allowEmpty: true });
+    valueSchema.validate({ allowEmpty: false });
+
+    // Verify the number of key names corresponds to the key schema length
+    if (keyNames.length != keySchema.numFields()) {
+      revert IStoreErrors.StoreCore_InvalidKeyNamesLength(keySchema.numFields(), keyNames.length);
+    }
+
+    // Verify the number of field names corresponds to the value schema length
+    if (fieldNames.length != valueSchema.numFields()) {
+      revert IStoreErrors.StoreCore_InvalidFieldNamesLength(valueSchema.numFields(), fieldNames.length);
+    }
 
     // Verify the schema doesn't exist yet
     if (hasTable(tableId)) {
@@ -113,22 +105,13 @@ library StoreCore {
     }
 
     // Register the schema
-    StoreCoreInternal._registerSchemaUnchecked(tableId, valueSchema, keySchema);
-  }
-
-  /**
-   * Set metadata for a given tableId
-   */
-  function setMetadata(bytes32 tableId, string memory tableName, string[] memory fieldNames) internal {
-    Schema schema = getSchema(tableId);
-
-    // Verify the number of field names corresponds to the schema length
-    if (!(fieldNames.length == 0 || fieldNames.length == schema.numFields())) {
-      revert IStoreErrors.StoreCore_InvalidFieldNamesLength(schema.numFields(), fieldNames.length);
-    }
-
-    // Set metadata
-    StoreMetadata.set(tableId, tableName, abi.encode(fieldNames));
+    TableData.set(
+      tableId,
+      Schema.unwrap(keySchema),
+      Schema.unwrap(valueSchema),
+      abi.encode(keyNames),
+      abi.encode(fieldNames)
+    );
   }
 
   /************************************************************************
@@ -541,40 +524,6 @@ library StoreCore {
 library StoreCoreInternal {
   bytes32 internal constant SLOT = keccak256("mud.store");
   bytes32 internal constant SCHEMA_TABLE = bytes32(abi.encodePacked(bytes16("mudstore"), bytes16("schema")));
-
-  /************************************************************************
-   *
-   *    SCHEMA
-   *
-   ************************************************************************/
-
-  function _getSchema(bytes32 tableId) internal view returns (Schema) {
-    bytes32[] memory key = new bytes32[](1);
-    key[0] = tableId;
-    uint256 location = StoreCoreInternal._getStaticDataLocation(SCHEMA_TABLE, key);
-    return Schema.wrap(Storage.load({ storagePointer: location }));
-  }
-
-  function _getKeySchema(bytes32 tableId) internal view returns (Schema) {
-    bytes32[] memory key = new bytes32[](1);
-    key[0] = tableId;
-    uint256 location = StoreCoreInternal._getStaticDataLocation(SCHEMA_TABLE, key);
-    return Schema.wrap(Storage.load({ storagePointer: location + 1 }));
-  }
-
-  /**
-   * Register a new tableId schema without validity checks
-   */
-  function _registerSchemaUnchecked(bytes32 tableId, Schema valueSchema, Schema keySchema) internal {
-    bytes32[] memory key = new bytes32[](1);
-    key[0] = tableId;
-    uint256 location = _getStaticDataLocation(SCHEMA_TABLE, key);
-    Storage.store({ storagePointer: location, data: valueSchema.unwrap() });
-    Storage.store({ storagePointer: location + 1, data: keySchema.unwrap() });
-
-    // Emit an event to notify indexers
-    emit StoreCore.StoreSetRecord(SCHEMA_TABLE, key, abi.encodePacked(valueSchema.unwrap(), keySchema.unwrap()));
-  }
 
   /************************************************************************
    *
