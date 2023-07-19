@@ -40,7 +40,7 @@ contract SnapSyncSystem is System {
         }
       }
 
-      Schema valueSchema = StoreSwitch.getSchema(tableId);
+      Schema valueSchema = StoreSwitch.getValueSchema(tableId);
       bytes memory value = StoreSwitch.getRecord(tableId, keyTuple, valueSchema);
       records[i] = SyncRecord({ tableId: tableId, keyTuple: keyTuple, value: value });
     }
