@@ -5,6 +5,7 @@ import { IBaseWorld } from "../../interfaces/IBaseWorld.sol";
 import { IModule } from "../../interfaces/IModule.sol";
 
 import { WorldContext } from "../../WorldContext.sol";
+import { ResourceSelector } from "../../ResourceSelector.sol";
 
 import { SnapSyncSystem } from "./SnapSyncSystem.sol";
 
@@ -28,9 +29,13 @@ contract SnapSyncModule is IModule, WorldContext {
     IBaseWorld world = IBaseWorld(_world());
 
     // Register system
-    world.registerSystem(NAMESPACE, SYSTEM_NAME, snapSyncSystem, true);
+    world.registerSystem(ResourceSelector.from(NAMESPACE, SYSTEM_NAME), snapSyncSystem, true);
     // Register system's functions
-    world.registerFunctionSelector(NAMESPACE, SYSTEM_NAME, "getRecords", "(bytes32,uint256,uint256)");
-    world.registerFunctionSelector(NAMESPACE, SYSTEM_NAME, "getNumKeysInTable", "(bytes32)");
+    world.registerFunctionSelector(
+      ResourceSelector.from(NAMESPACE, SYSTEM_NAME),
+      "getRecords",
+      "(bytes32,uint256,uint256)"
+    );
+    world.registerFunctionSelector(ResourceSelector.from(NAMESPACE, SYSTEM_NAME), "getNumKeysInTable", "(bytes32)");
   }
 }
