@@ -1,5 +1,14 @@
 # Change Log
 
+## 2.0.0-next.2
+
+### Patch Changes
+
+- Updated dependencies [[`48c51b52`](https://github.com/latticexyz/mud/commit/48c51b52acab147a2ed97903c43bafa9b6769473)]:
+  - @latticexyz/std-client@2.0.0-next.2
+  - @latticexyz/recs@2.0.0-next.2
+  - @latticexyz/utils@2.0.0-next.2
+
 ## 2.0.0-next.1
 
 ### Patch Changes

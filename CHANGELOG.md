@@ -1,3 +1,33 @@
+# Version 2.0.0-next.2
+
+## Major changes
+
+**[refactor(store): remove TableId library (#1279)](https://github.com/latticexyz/mud/commit/a25881160cb3283e11d218be7b8a9fe38ee83062)** (@latticexyz/store)
+
+Remove `TableId` library to simplify `store` package
+
+**[feat(create-mud): infer recs components from config (#1278)](https://github.com/latticexyz/mud/commit/48c51b52acab147a2ed97903c43bafa9b6769473)** (@latticexyz/cli, @latticexyz/std-client, @latticexyz/store-sync, @latticexyz/store, @latticexyz/world, create-mud)
+
+RECS components are now dynamically created and inferred from your MUD config when using `syncToRecs`.
+
+To migrate existing projects after upgrading to this MUD version:
+
+1. Remove `contractComponents.ts` from `client/src/mud`
+2. Remove `components` argument from `syncToRecs`
+3. Update `build:mud` and `dev` scripts in `contracts/package.json` to remove tsgen
+
+   ```diff
+   - "build:mud": "mud tablegen && mud worldgen && mud tsgen --configPath mud.config.ts --out ../client/src/mud",
+   + "build:mud": "mud tablegen && mud worldgen",
+   ```
+
+   ```diff
+   - "dev": "pnpm mud dev-contracts --tsgenOutput ../client/src/mud",
+   + "dev": "pnpm mud dev-contracts",
+   ```
+
+---
+
 # Version 2.0.0-next.1
 
 ## Major changes

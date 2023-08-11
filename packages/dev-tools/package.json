@@ -1,6 +1,6 @@
 {
   "name": "@latticexyz/dev-tools",
-  "version": "2.0.0-next.1",
+  "version": "2.0.0-next.2",
   "description": "MUD developer tools",
   "repository": {
     "type": "git",
@@ -49,10 +49,10 @@
     "vitest": "0.31.4"
   },
   "peerDependencies": {
-    "@latticexyz/network": "2.0.0-next.1",
-    "@latticexyz/std-client": "2.0.0-next.1",
-    "@latticexyz/utils": "2.0.0-next.1",
-    "@latticexyz/world": "2.0.0-next.1"
+    "@latticexyz/network": "2.0.0-next.2",
+    "@latticexyz/std-client": "2.0.0-next.2",
+    "@latticexyz/utils": "2.0.0-next.2",
+    "@latticexyz/world": "2.0.0-next.2"
   },
   "publishConfig": {
     "access": "public"

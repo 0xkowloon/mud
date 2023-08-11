@@ -1,5 +1,17 @@
 # @latticexyz/dev-tools
 
+## 2.0.0-next.2
+
+### Patch Changes
+
+- Updated dependencies [[`48c51b52`](https://github.com/latticexyz/mud/commit/48c51b52acab147a2ed97903c43bafa9b6769473)]:
+  - @latticexyz/std-client@2.0.0-next.2
+  - @latticexyz/world@2.0.0-next.2
+  - @latticexyz/network@2.0.0-next.2
+  - @latticexyz/react@2.0.0-next.2
+  - @latticexyz/common@2.0.0-next.2
+  - @latticexyz/utils@2.0.0-next.2
+
 ## 2.0.0-next.1
 
 ### Patch Changes
